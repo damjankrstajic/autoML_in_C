@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 static int verbose_flag;
+static char **variable_names = NULL;
 
 void timestamp()
 {
@@ -15,12 +16,83 @@ void timestamp()
     printf("%s",asctime( localtime(&ltime) ) );
 }
 
+void report_and_out()
+{
+  printf("Error: Out of Memory \n");
+  exit(1);
+}
+
+char **get_comma_separated_values(char *str1)
+{
+  int i;
+  int j=0;
+  int ctr=0;
+  char **cs_values = (char**) malloc (10 * sizeof (char*));
+  if (cs_values == NULL) report_and_out();
+
+  for (i=0;i<4;i++) 
+  {
+    cs_values[i] = (char*) malloc (24 * sizeof(char));
+    if (ts_values[i] == NULL) report_and_out();
+  }
+
+  for(i=0;i<=(strlen(str1));i++)
+  {
+    // if tabe or NULL found, assign NULL into newString[ctr]
+    if(str1[i]=='\t'||str1[i]=='\0')
+    {
+      ts_values[ctr][j]='\0';
+      ctr++;  //for next word
+      j=0;    //for next word, init index to 0
+    }
+    else
+    {
+      ts_values[ctr][j]=str1[i];
+      j++;
+    }
+  }
+
+  number_of_variables = ctr;
+
+  return ts_values;
+}
+
+void process_csv_file (char *fname)
+{
+  char *line     = NULL;
+  FILE *fp;
+  size_t len;
+  ssize_t nread;
+  int i = 0;
+
+  fp = fopen(fname,"r");
+  if (fp==NULL) 
+  {
+    printf("Can't open %s\n", fname);
+    exit(EXIT_FAILURE);
+  } 
+
+  while ((nread = getline(&line, &len, fp)) != -1) 
+  {
+    line[strcspn(line, "\n")] = 0;
+
+    if (i==0)
+    {
+      printf("line is '%s'\n", line);
+    }
+    ++i;
+  }
+ 
+  free(line);
+  fclose(fp);
+}
+
 int main (int argc, char **argv)
 {
-  int c;
+  int c; // used to getopt_long
+
   char *file_name = NULL;
   char *out_file_name = NULL;
-
 
   while (1)
   {
@@ -80,6 +152,8 @@ int main (int argc, char **argv)
   if (verbose_flag)  puts ("verbose flag is set");
 
   printf ("Processing %s\n", file_name);
+  process_csv_file(file_name);
+
   printf ("Writing into file %s\n", out_file_name);
 
   exit (0);
